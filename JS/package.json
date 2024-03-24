@@ -1,0 +1,20 @@
+{
+  "name": "nosql",
+  "version": "1.0.0",
+  "description": "a social media start up",
+  "main": "connection.js",
+  "scripts": {
+    "test": "--test",
+    "start": "nodemon express.js",
+    "seed": "npm run ./SEED/seed"
+  },
+  "author": "Emily",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.9.7"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  }
+}

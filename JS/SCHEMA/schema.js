@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
 
 // Thought Schema
 const thoughtSchema = new mongoose.Schema({
-    content: {
+    thoughts: {
         type: String,
         required: true
     },
@@ -46,6 +46,7 @@ const thoughtSchema = new mongoose.Schema({
     },
     // Other thought fields can be added here
 });
+
 
 // Reaction Schema
 const reactionSchema = new mongoose.Schema({
@@ -63,12 +64,12 @@ const reactionSchema = new mongoose.Schema({
         type: String,
         max: 280,
         required: true
-    }
-    // Other reaction fields can be added here
-},
-    {
-        timestamps: true
-    });
+    },
+});
+
+{
+    timestamps: true
+};
 
 
 

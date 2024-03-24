@@ -1,5 +1,6 @@
 const express = require('express');
 const { User, Thought, Reaction } = require('./models');
+const mongoose = require('mongoose');
 const router = express.Router();
 
 // Get all users
@@ -79,13 +80,13 @@ router.get('/thoughts', async (req, res) => {
 // Create a thought
 router.post('/thoughts', async (req, res) => {
     try {
-        const { userId, content } = req.body;
+        const { userId, thoughts } = req.body;
 
-        if (!userId || !content) {
-            return res.status(400).json({ message: 'userId and content are required' });
+        if (!userId || !thoughts) {
+            return res.status(400).json({ message: 'userId and thoughts are required' });
         }
 
-        const thought = new Thought({ userId, thought: content });
+        const thought = new Thought({ userId, thoughts });
         await thought.save();
 
         res.status(201).json(thought);
@@ -95,15 +96,14 @@ router.post('/thoughts', async (req, res) => {
     }
 });
 
-
 // Add thought to user's thoughts array and return thought
 router.post('/thoughts/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { content, userId } = req.body;
+        const { thoughts, userId } = req.body; // Changed variable name from 'thought' to 'thoughts'
 
-        if (!userId || !content) {
-            return res.status(400).json({ message: 'userId and content are required' });
+        if (!userId || !thoughts) {
+            return res.status(400).json({ message: 'userId and thoughts are required' });
         }
 
         const user = await User.findById(id);
@@ -111,24 +111,18 @@ router.post('/thoughts/:id', async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const thought = new Thought({ content, userId });
-        await thought.save();
+        const newThought = new Thought({ thoughts, userId }); // Changed variable name from 'thought' to 'newThought'
+        await newThought.save();
 
-        user.thoughts.push(thought._id);
+        user.thoughts.push(newThought._id);
         await user.save();
 
-        res.status(201).json(thought);
+        res.status(201).json(newThought);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 });
-
-
-
-
-
-
 
 // Get a single thought
 router.get('/thoughts/:id', async (req, res) => {
@@ -190,12 +184,21 @@ router.get('/reactions', async (req, res) => {
 // create a reaction
 router.post('/reactions', async (req, res) => {
     try {
-        const reaction = new Reaction(req.body);
+        const { userId, thoughtId, reactionBody } = req.body;
+
+        if (!userId || !thoughtId || !reactionBody) {
+            return res.status(400).json({ message: 'userId, thoughtId, and reactionBody are required' });
+        }
+
+        const reaction = new Reaction({ userId, thoughtId, reactionBody });
         await reaction.save();
         res.status(201).json(reaction);
-    } catch (error) { console.log(error); }
-}
-);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 
 // get a single reaction
 router.get('/reactions/:id', async (req, res) => {
@@ -209,12 +212,31 @@ router.get('/reactions/:id', async (req, res) => {
 // update a reaction
 router.put('/reactions/:id', async (req, res) => {
     try {
-        const reaction = await Reaction.findByIdAndUpdate
-            (req.params.id, req.body, { new: true });
+        const { id } = req.params;
+        const { userId, thoughtId, reactionBody } = req.body;
+
+        if (!userId || !thoughtId || !reactionBody) {
+            return res.status(400).json({ message: 'userId, thoughtId, and reactionBody are required' });
+        }
+
+        const reaction = await Reaction.findByIdAndUpdate(
+            id,
+            { userId, thoughtId, reactionBody },
+            { new: true }
+        );
+
+        if (!reaction) {
+            return res.status(404).json({ message: 'Reaction not found' });
+        }
+
         res.json(reaction);
-    } catch (error) { console.log(error); }
-}
-);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
 
 // delete a reaction
 router.delete('/reactions/:id', async (req, res) => {
@@ -234,6 +256,16 @@ router.get('/thoughts/:thoughtId/reactions', async (req, res) => {
 }
 );
 // Add a reaction to a thought
+
+router.post('/thoughts/:thoughtId/reactions', async (req, res) => {
+    try {
+        const { thoughtId } = req.params;
+        const { userId, reactionBody } = req.body;
+    } catch (error) { console.log(error); }
+}
+);
+
+// Get all friends
 router.get('/friends', async (req, res) => {
     try {
         const friends = await User.find();
@@ -259,7 +291,7 @@ router.post('/users/:userId/friends/:friendId', async (req, res) => {
         await friend.save();
     } catch (error) { console.log(error); }
 
-    res.json(user);
+    res.json(User);
 
 }
 );
@@ -298,7 +330,7 @@ router.delete('/users/:userId/friends/:friendId', async (req, res) => {
         await friend.save();
     } catch (error) { console.log(error); }
 
-    res.json(user);
+    res.json(User);
 
 }
 );
